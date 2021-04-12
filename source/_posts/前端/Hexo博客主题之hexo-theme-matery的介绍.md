@@ -9,6 +9,7 @@ tags:
   - hexo-theme-matery
 ---
 [English Document](README.md) | [演示示例](https://blinkfox.github.io/) | QQ交流群:`926552981`
+![](6.jpg)
 
 > 这是一个采用`Material Design`和响应式设计的 Hexo 博客主题。
 

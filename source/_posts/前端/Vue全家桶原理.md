@@ -99,6 +99,7 @@ Vue.component('router-link', {
 //router-view也同理这样实现
 ```
 任务3. 监视URL变化
+
 ```js
 class KVueRouter{
   constructor(options) {
@@ -232,7 +233,7 @@ MVVM框架的三要素：1. 数据响应式、2. 模板引擎及其渲染
 - Proxy
 
 模板引擎：提供描述视图的模板语法
-- 插值： {{}}
+- 插值：```js {{}} ```
 - 指令：v-bind,v-on,v-model,v-for,v-if
 
 渲染：如何将模板转换为html
@@ -255,6 +256,9 @@ function defineReactive(obj,key,val){
         console.log('set'+ key + ':' + newVal);
         val = newVal
       }
+      //如果传入的newVal依然是obj，需要做响应化处理
+      observe(newVal)
+      //watchers.forEach(w => w.update())
     }
 
   }
@@ -263,8 +267,66 @@ function defineReactive(obj,key,val){
   const dep = new Dep()
   //依赖收集在这里
   dep.target && dep.addDep(Dep.target)
+  //通知跟新
+  dep.notify()//只更新相关节点
+}
+defineReative(obj, 'foo', 'foo')
+obj.foo;
+obj.foo = 'foooooo'
+
+```
+
+- 2. 在set函数中调用跟新函数
+
+```js
+
+functionn observe(obj){
+  if(typeof obj !== 'object' || obj == null){
+    //希望传入的是obj
+    return
+  }
+  Object.keys(obj).forEach(key => {
+    defineReactive(obj, key, obj[key])
+  })
+}
+const obj = {foo: 'foo', bar:'bar', baz:{a:1}}
+//遍历做响应化处理
+
+```
+
+## Vue中的数据响应处理
+
+### 原理分析：
+1. new Vue()首先执行初始化，对data执行响应化处理，这个过程发生在Observer中
+2. 同时对模板执行编译，找到其中动态绑定的数据，从data中获取并初始化视图，这个过程发生在complie中
+3. 同时定义一个更新函数和watcher，将来对应数据变化时watcher会调用更新函数 
+4. 由于data的某个key在一个属兔中可能出现多次，所以每个key都需要一个管家Dep来管理多个watcher
+5. 将来data中数据一旦发生变化，会首先找到对应的Dep，通知所有的Watcher执行跟新函数
+
+### 设计类型介绍
+- kVue:框架构造函数
+- Observer:执行数据响应化（分辨数据是对象还是数组）
+- compile: 编译模板，初始化视图，收集依赖，（跟新函数，watcher创建）
+- Watcher: 执行跟新函数（跟新Dom）
+- Dep: 管理多个watcher,批量更新
+```js
+//1.创建kVUe的构造函数
+class KVue{
+  constructor(options){
+    //保存选项
+    this.$options = options;
+    this.$data = options.data;
+    //响应化处理
+    Observe(this, '$data')
+    //代理
+    proxy(this,'$data')
+    //创建编译器
+    new Compiler(options.el, this)
+  }
 }
 ```
+
+
 
 
 

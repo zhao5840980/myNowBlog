@@ -5,7 +5,8 @@ author: zhengzheng
 cover: true
 categories: 前端
 tags:
-   - 前端
+   - 前端  
+   - Vue
 ---
 
 ## 组件通讯常用方式

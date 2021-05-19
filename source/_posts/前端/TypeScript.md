@@ -457,6 +457,30 @@ foo.log();
 foo.setBar('abc')
 ```
 
+#### 自定义装饰器
+
+```js
+<script lang="ts">
+import { Prop, Vue } from 'vue-property-decorator';
+// 目标：返回组件构造函数
+function Component(options: any){
+  return function(target: any) {
+    //返回组件构造函数即可
+    return Vue.extend(options)
+  }
+}
+
+@Component({
+  props: {
+    msg: String
+  }
+})
+export default class HelloWorld extends Vue {}
+</script>
+```
+
+
+
 
 
 

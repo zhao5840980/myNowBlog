@@ -533,7 +533,7 @@ export default Layout extends Component {
 ```js
 npm install redux --save
 ```
-
+ 
 #### redux上手
 
 用一个累加器举例
@@ -546,7 +546,7 @@ npm install redux --save
 ```js
 // 创建store, src/store/ReduxStore.js
 import {createStore} from 'redux'
-
+ 
 //定义state初始化和修改规则 ,reducer是一个纯函数
 const counterReducer = (state = 0, action) => {
   console.log("state", state)
@@ -586,7 +586,507 @@ export default class ReduxPage extend Component {
     )
   }
 }
+
 ```
+```js
+// index.js
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css"
+import App from "./App"
+import store from "./store/"
+
+ReactDOM.render(<App />,document.getElementById("root"))
+
+store.subscribe(() => {
+  console.log("state发生变化了")
+  // this.forceUpdate();
+  ReactDOM.render(<App />,document.getElementById("root"))
+})
+
+
+```
+
+##### 检查点
+1. createStore 创建store
+2. reducer 初始化、修改状态函数
+3. getState获取状态值
+4. dispatch提交更新
+5. subscribe变更订阅
+## react-redux
+### 安装
+```bash
+npm install react-redux --save
+```
+### 使用react-redux
+
+react-redux提供了两个api
+
+1. Provider为后代组件提供store
+2. connect为组件提供数据和变更方法
+
+```js
+//index.js
+import React from "react" 
+import ReactDOM from "react-dom"
+import "./index.css"
+import App from "./App"
+import store from "./store/"
+import { Provider } from 'react-redux' 
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("root")
+)
+```
+
+```js
+import React from "react"
+import ReactReduxPage from "./pages/ReactReduxPage"
+
+export default function App() {
+  return (
+    <div>
+      <ReactReduxPage />
+    </div>
+  )
+}
+```
+```js
+// ReactReduxPage.js----高阶组件
+import React, { Component } from "react"
+import { connect } from "react-redux";
+
+export default connect(
+  //mapStateToProps 把state映射到props
+  state => ({ num: state})
+
+  //mapDispatchToProps 把dispatch映射到props
+  {
+    add: () => ({type:'ADD'})
+  }
+)(
+  class ReactReduxPage extends Component {
+  render() {
+    const { num, dispatch, add } = this.props;
+    console.log("props", this.props);
+    return (
+      <div>
+        <h3>ReactReduxPage</h3>
+        <p>{num}</p>
+        {/*<button onClick= {() => dispatch({type: "ADD"})}>add</button>*/}
+        <button onClick={add}>add</button>
+      </div>
+    )
+  }
+})
+export default 
+```
+
+## react-router
+
+> react-router包含3个库，react-router、react-router-dom和react-router-native.react-router提供最基本的路由功能，实际使用的时候我们不会直接安装react-router,而是根据应用运行的环境选择安装react-router-dom（在浏览器中使用）或react-router-native(在rn中使用)。react-router-dom和react-router-native都依赖react-router,所以在安装时，react-router也会自动安装，创建web应用，使用：
+
+### 安装 
+```js
+npm install --save react-router-dom
+```
+
+```js
+RouterPage.js
+import React, { Component } from "react";
+import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
+
+export default class RouterPage extends Component {
+  render() {
+    return (
+      <div>
+        <h3>RouterPage</h3>
+        <Router>
+          <Link to ="/">首页</Link>
+          <Link to="/user">用户中心</Link>
+
+          <Switch>
+          <Route 
+            exact 
+            path="/" 
+            component={HomePage}
+            children={() => <div>children</div>}
+            render={() => <div>render</div>}
+          />
+          <Route path="/user" component={UserPage}>
+          <Route  component={EmptyPage} />
+          </Switch>
+        </Router>
+      </div>
+    )
+  }
+
+}
+
+class HomePage extends Component {
+  render() {
+    return (
+      <div>
+        <h3>HomePage </h3>
+      </div>
+    )
+  }
+}
+class UserPage extends Component {
+  render() {
+    return (
+      <div>
+        <h3>UserPage </h3>
+      </div>
+    )
+  }
+}
+class HomePage extends Component {
+  render() {
+    return (
+      <div>
+        <h3>HomePage </h3>
+      </div>
+    )
+  }
+}
+class EmptyPage extends Component {
+  render() {
+    return (
+      <div>
+        <h3>EmptyPage-404 </h3>
+      </div>
+    )
+  }
+}
+```
+### Route渲染内容的三种方式
+
+Route渲染优先级：children>component>render
+这三种方式互斥，你只能用一种
+
+#### children: func
+ 
+有时候，不管location是否匹配，你都需要渲染一些内容，这时候你可以用children
+
+除了不管location是否匹配都会被渲染之外，其他工作方法与render完全一样
+
+#### render: func
+
+但是当你用render的时候，你调用的只是个函数。
+
+只有当location匹配的时候渲染
+
+#### component: component
+
+只有当location匹配的时候渲染
+  
+
+## PureComponentPage --纯组件
+
+1. 掌握PureComponent使用，实现性能有化
+2. 掌握PureComponent原理
+
+### 实现性能有化
+
+```js
+import React, { Component, PureComponent } from "react";
+
+// export default class PureComponentPage extends Component {
+export default class PureComponentPage extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 0
+    }
+
+  }
+  setCount = () => {
+    this.setState({ count: 100 })
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    return nextState.count != this.state.count
+  }
+  render() {
+    console.log("render")
+    const {count} = this.state
+    return (
+      <div>
+        <h3>PureComponentPage</h3>
+      </div>
+    )
+  }
+}
+
+```
+#### 浅比较
+
+缺点是必须要用class形式，而且要注意是“浅比较 ”
+
+#### 与Component作比较
+
+React.PureComponent与React.component很相似。两者的区别在于React.Component并未实现shouldComonentUpdate(),而React.PureComponent中以浅层对比prop和state的方式来实现了该函数
+
+如果赋予React组件相同的props和state，render()函数会渲染相同的内容，那么在某些情况下使用React.PureComponent可提高性能
+
+> 注意
+
+> React.PureComponent中的shouldComponentUpdate()仅作对象的浅层比较，如果对象中包含复杂的数据结构，则有可能因为无法检查深层的差别，产生错误的比对结果，仅在你的props和state较为简单时，才使用React.PureComponent，或者在深层数据结构发生变化时调用forceUpdate()来确保组件被正确更新，你也可以考虑使用immutable对象加速嵌套数据的比较
+
+> 此外，React.PureComponent中的shouldComponentUpdate()将跳过所有子组件树的prop更新，因此，请确保所有的子组件也都是"纯"的组件
+
+## 认识Hook
+
+### 认识Hook
+
+>Hook是什么？ Hook是一个特殊的函数，它可以让你"钩入"React的特性。例如，useState是允许你在React函数组件中添加state的Hook
+
+> 什么时候我会用Hook? 如果你在编写函数组件并意识到里需要向其添加一些state,以前的做法是必须将其他转化为class,现在你可以在现有的函数组件中使用Hook
+
+```js
+import React, { useState, useEffect } from "react";
+
+export default function HookPage(props) {
+  //定义一个叫count的state变量，初始化为0
+  const [count, setCount] = useState(0)
+
+  //和didMount、didUpdate类似
+  useEffect(() => {
+    console.log('effect')
+    document.title = `点击了${count}次`
+  })
+  return (
+    <div>
+      <h3>HookPage</h3>
+      <p>{count}</p>
+      <button onClick={() => {setCount(count + 1)}}>add</button>
+    </div>
+  )
+
+}
+```
+
+#### 使用Effect Hook
+
+> Effect Hook可以让你在函数组件中执行副作用操作
+
+> 数据获取，设置订阅以及手动更改React组件中的DOM都属于副作用，不管你知不知道这些操作，或是"副作用"这个名字，应该都在组件中使用它们
+
+> 在函数组件主题内（这里指在React渲染阶段）改变DOM、添加订阅、设置定时器、记录日志以及执行其他包含副作用的操作都是不被允许的，因为这可能会产生莫名其妙的bug并破坏UI的一致性
+
+> 使用useEffect完成副作用操作。赋值给useEffect的函数会在组件渲染到屏幕之后执行，你可以把effect看作从React的纯函数式世界通往命令式世界的逃生通道
+
+> 默认情况下，effect将在每轮渲染结束后执行，但你可以选择让它在只有某些值改变的时候才执行
+
+#### effect的条件执行
+
+默认情况下，effect会在每轮组件渲染完成后执行，这样的话，一但effect的依赖发生变化，它就会被重新创建
+
+然而，在某些场景下这么做可能会矫枉过正，要实现这一点，可以给useEffect传递第二个参数，他是effect所以来的值数组
+
+```js
+import React, { useState, useEffect } from "react";
+
+export default function HookPage(props) {
+  //定义一个叫count的state变量，初始化为0
+  const [count, setCount] = useState(0);
+  const [data, setDate] = useState(new Date());
+  //和didMount、didUpdate类似
+  useEffect(() => {
+    console.log("effect")
+    //只需要在count发生改变的时候执行就可以啦
+    doucument.title = `点击了${count}次`；
+   
+  }, [count]);
+  useEffect(() => {
+     //只需要在didMount时候执行就可以了
+    const timer = setInterval(() => {
+      setDate(new Date())
+    }, 1000)
+  }, [])
+  return (
+    <div>HookPage</div>
+    <p>{count}</p>
+    <button onClick={() => setCount(count + 1)}>add</button>
+    <p>{date.toLocaleTimeString() }</p>
+  )
+  
+
+}
+```
+#### 清除effect
+
+> 通常，组件卸载时需要清除effect船舰的诸如订阅或定时器ID等资源，要实现这一点，useEffect函数需返回一个清除函数，以防止内存泄漏，清除函数会在组件卸载前执行
+
+```js
+import React, { useState, useEffect } from "react";
+
+export default function HookPage(props) {
+  //定义一个叫count的state变量，初始化为0
+  const [count, setCount] = useState(0);
+  const [data, setDate] = useState(new Date());
+  //和didMount、didUpdate类似
+  useEffect(() => {
+    console.log("effect")
+    //只需要在count发生改变的时候执行就可以啦
+    doucument.title = `点击了${count}次`；
+   
+  }, [count]);
+  useEffect(() => {
+     //只需要在didMount时候执行就可以了
+    const timer = setInterval(() => {
+      setDate(new Date())
+    }, 1000)
+    //清除定时器， 类似willUnmount
+    return () => clearInterval(timer)
+  }, [])
+  return (
+    <div>HookPage</div>
+    <p>{count}</p>
+    <button onClick={() => setCount(count + 1)}>add</button>
+    <p>{date.toLocaleTimeString() }</p>
+  )
+  
+
+}
+```
+
+### 自定义Hook与Hook使用规则
+> 有时候我们会想要在组件之间重用一些状态逻辑。目前为止，有两种主流方案来解决这个问题：高阶组件和render props，自定义Hook可以让你在不增加组件的情况下达到同样的目的
+
+> 自定义Hook是一个函数，其名称以"use"开头，函数内部可以调用其他的Hook
+
+```js
+import React, { useState, useEffect } from "react";
+
+export default function HookPage(props) {
+  //定义一个叫count的state变量，初始化为0
+  const [count, setCount] = useState(0);
+  //和didMount、didUpdate类似
+  useEffect(() => {
+    console.log("effect")
+    //只需要在count发生改变的时候执行就可以啦
+    doucument.title = `点击了${count}次`；
+   
+  }, [count]);
+
+  return (
+    <div>HookPage</div>
+    <p>{count}</p>
+    <button onClick={() => setCount(count + 1)}>add</button>
+    <p>{useClock().toLocaleTimeString() }</p>
+  )
+  
+
+}
+
+// 自定义一个hook, 命名要以use开头
+function useClock() {
+  const [date, setDate] = useState(new Date())
+  useEffect(() => {
+    console.log("date effect")
+    //只需要在didMount时候执行就可以了
+    const timer = setInterval(() => {
+      setDate(new Date())
+    }, 1000)
+    //清除定时器， 类似willUnmount
+    return () => clearInterval(timer)
+  }, [])
+  return date;
+}
+
+```
+#### Hook 使用规则
+> Hook就是javascript函数，但是使用它们会有两个额外的规则：
+- 只能在函数最外层调用Hook.不要再循环、条件判断或者子函数中调用
+- 只能在React的函数组件中调用Hook,不要在其他javascript函数中调用。(还有一个地方可以调用Hook--就是自定义的Hook中)
+
+### HookAPI之useMemo与useCallback
+
+#### useMemo
+> 把"创建"函数和依赖项数组作为参数传入useMemo,它仅会在某个依赖项改变时才重新计算memoized值，这种优化有助于避免在每次渲染时都进行高开销的计算
+
+```js
+import React, { useState, useEffect} from "react"
+
+export default function UseMemoPage(props) {
+  const [count, setCount] = useState(0)
+
+  const expensive =useMemo( () => {
+    console.log("compute")
+    let sum = 0;
+    for(let i = 0;i < count; i++){
+      sum+=i;
+    }
+    return sum;
+    //只有count改变的时候，当前函数才会重新执行
+  }, [count])
+  const [value, setValue] = useState("")
+
+  return (
+    <div>UseMemoPage</div>
+    <p>count: {count}</p>
+    <p>expensive: {expensive}</p>
+    <button onClick={() => setCount(count + 1)}>add</button>
+    <input value={value} onChange={event => setValue(event.target.value)}/>
+
+  )
+
+
+
+}
+```
+#### useCallback
+> 把内联回调函数及依赖项数组作为参数传入useCallback,它将返回该回调函数的memoized版本，该回调函数仅在某个依赖项改变时才会更新，当你把回调函数传递给经过优化的并使用引用相关性去避免非必要渲染（例如shouldComponentUpdate）的子组件时，它将非常有用
+
+```js
+import React, { useState, useEffect, PureComponent } from "react"
+
+export default function UseCallbackPage(props) {
+  const [count, setCount] = useState(0);
+  const addClick = useCallback(() => {
+    let sum = 0;
+    for(let i = 0; i<count; i++) {
+      sum+=i;
+
+    }
+    return sum;
+  }, [count])
+  const [value, setValue] = useState("")
+
+  return (
+    <div>
+      <h3>UseCallbackPage</h3>
+      <p>count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>add</button>
+      <input value={value} onChange={event => setValue(event.target.velue)}/>
+      <Child addClick={addClick}/>
+    </div>
+  )
+}
+
+class Child extends PureComponent {
+  render() {
+    console.log("child render")
+    const { addClick } = this.props;
+    return (
+      <div>
+        <h3>Child</h3>
+        <button onClick={() => console.log(addClick())}>add</button>
+      </div>
+    )
+  }
+}
+```
+> useCallback(fn, deps) 相当于 useMemo(() => fn, deps)
+
+
+
+
+
 
 
 

@@ -297,6 +297,33 @@ export default class FormPage2 extends Component {
 
 ```
 
+#### 实现表单
 
+```js
+import React, {Component} from "react"
+import kFormCreate from "../components/kFormCreate";
+
+
+@KFormCreate
+class MyFormPage extends Component {
+  submit = () => {
+    console.log('submit')
+  };
+  render() {
+    console.log('props', this.props)
+    return (
+      <div>
+        <h3>MyFormPage</h3>
+        <input type="text" placeholder="please input ur name"/>
+        
+
+
+      </div>
+    )
+  }
+
+}
+
+```
 
 

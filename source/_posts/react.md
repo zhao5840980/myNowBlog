@@ -300,22 +300,38 @@ export default class FormPage2 extends Component {
 #### 实现表单
 
 ```js
+// MyFormPage.js
 import React, {Component} from "react"
 import kFormCreate from "../components/kFormCreate";
 
-
+const nameRules = {required: true, message: 'please input ur name'}
+const passwordRules = {required: true, message: 'please input ur password'}
 @KFormCreate
 class MyFormPage extends Component {
   submit = () => {
-    console.log('submit')
+    const {getFieldsValue, getFieldValue, validateFields} = this.props;
+
+
+    console.log('submit', getFieldsValue(), getFieldValue('password'))
   };
   render() {
     console.log('props', this.props)
+    const {getFieldDecorator} = this.props;
     return (
       <div>
         <h3>MyFormPage</h3>
-        <input type="text" placeholder="please input ur name"/>
-        
+        {getFieldDecorator(
+          "name",
+          {rules: [nameRules]}
+        )(<input type="text" placeholder="please input ur name"/>)}
+        {getFieldDecorator(
+          "password",
+          {rules: [passwordRules]}
+        )(<input type="password" placeholder="please input ur password"/>}
+       
+      
+        <button onClick={this.submit}>提交</button>
+
 
 
       </div>
@@ -325,5 +341,161 @@ class MyFormPage extends Component {
 }
 
 ```
+```js
+// KFormCreate.js
+import React, {Component} from "react"
 
+export default function lFormCreate(Cmp){
+  return class extends Component {
+    constructor(props) {
+      super(props)
+      this.state = {}；
+      this.option = {}
+    }
+    handleChange=(e) => {
+      // setState name value
+      let {name, value} = e.target;
+      this.setState({[name]: value}); 
+
+    }
+    getFieldDecorator = (filed, option) => {
+      this.options[field] = option
+        return InputCmp => {
+          //克隆一份
+          return React.cloneElement(InputCmp, {
+            name: field,
+            value: this.state[filed] || "",
+            onChange: this.handleChange
+          })
+        }
+      }
+      getFieldsValue=()=> {
+        return {...this.state}
+      }
+      getFieldValue = field => {
+        return this.state[field];
+      }
+      validateFields = callback => {
+        // 校验错误信息
+        const errors = {};
+        const state = {...this.state}
+        for (let name in this.options) {
+          if (state[name] === undefined) {
+            // 没有输入， 判断为不合法
+            errors[name] = "error"
+          }
+        }
+        if (JSON.stringify(errors) === "{}") {
+          // 合法
+          callback(undefined, state);
+        } else {
+          callback(errors, state)
+        }
+      }
+    render() {
+      return (
+        <div className="border">
+          <Cmp 
+            getFieldDecorator = {this.getFieldDecorator}
+            getFieldsValue={this.getFieldsValue}
+            getFieldValue={this.getFieldValue}
+            validateFields={this.validateFields}
+            />
+        </div>
+      )
+    }
+  }
+}
+```
+
+```js
+import React, {Component} from "react"
+import Dialog from "../components/Dialog";
+
+export default class DialogPage extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showDialog: false
+    }
+  }
+  render() {
+    const {showDialog} = this.state;
+    return (
+      <div>
+        <h3>DialogPage</h3>
+        <button onClick={() => {
+          this.setState({showDialog: !showDialog})
+        }}>toggle</button>
+        {showDialog && <DIalog>
+          <p>我是一段文本</p>
+        <Dialog />}
+      </div>
+    )
+  }
+}
+```
+
+```js
+// Dialog.js
+import React, {Component} from "react"
+import {createPortal} from "react-dom"
+
+export default class Dialog extends Component {
+  constructor(props) {
+    super(props)
+    const doc = window.document; 
+    this.node = doc.createElement("div")
+    doc.body.appendChild(this.node)
+  }
+  componentWillUnmount() {
+    window.document.body.removeChild(this.node);
+  }
+  render() {
+    return createPortal(
+      <div className="dialog">
+        <h3>Dialog</h3>
+        {this.props.children}
+      </div>,
+      this.node
+    )
+  }
+}
+```
+#### 具体实现：Portal
+> 传送门，react16之后出现的portal可以实现内容传送功能
+
+#### 使得react项目加载typescript进行开发
+```js
+Npx create-react-app --typescript
+```
+
+### React全家桶01-redux
+#### Reducer
+##### 什么是reducer
+> reducer就是一个纯函数，接受旧的state 和 action ， 返回新的state
+```js
+;(previousState, action) => newState
+```
+
+之所以将这样的函数称之为reducer，是因为这种韩式与传入Ayyay.prototype.reduce(reducer, ?initialValue)里的回调函数属于相同的类型。保持reducer纯净非常重要，永远不要再reducer里做这些操作：
+- 修改传入参数；
+- 执行有副作用的操作，如API请求和路由跳转
+- 调用非纯函数， 如Date.noe()或Math.random().
+
+```js
+const array1 = [1,2,3,4]
+const reducer = (accumulator, currentValue) => accumulator + currentValue;
+
+// 1+2+3+4
+console.log(array1.reduce(reducer));
+// expected output: 10
+
+// 5+1+2+3+4
+console.log(array1.reduce(reducer, 5))
+// expected output: 15
+```
+
+
+### 组件跨岑寂通讯- Context
 

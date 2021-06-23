@@ -497,5 +497,287 @@ console.log(array1.reduce(reducer, 5))
 ```
 
 
-### 组件跨岑寂通讯- Context
+### 组件跨层级通讯- Context
+![context](./Context.png)
 
+在一个典型的React应用中，数据是通过props属性自上而下（由父及子）进行传递的，但这种做法对于某些类型的属性而言是及其繁琐的（例如：地区偏好，UI主题），这些属性是应用程序中许多组件都需要的。Context提供了一种在组件之间共享此类值的方式，而不必显式的通过组件树的逐层传递props. 
+
+React中使用COntext实现祖代组件向后代组件跨层级传值，Vue中的provide & inject来源于Context
+
+#### Context API
+##### React.createContext
+
+创建一个COntext对象。当React渲染一个订阅了这个Context对象的组件，这个组件会从组件树中离自身最近的那个匹配的Provider中读取到当前的context值
+
+```js
+// App.js
+import React from 'react'
+import ContextPage from "./pages/ContextPage";
+
+function App() {
+  return (
+    <div className="App">
+      {/* context 上下文*/}
+     <ContextPage/>
+    </div>
+  );
+}
+```
+
+```js
+// ContextPage.js
+import React, {Component} from "react"
+import ContextTypePage from "./ContextTypePage";
+import ConsumerPage from "./ConsumerPage";
+import MultipleContextPage from "./MultipleContextPage";
+import {ThemeProvider} from "../ThemeContext"
+import {UserProvider} from "../UserContext"
+// 创建context 农民种菜
+// const ThemeContext = React.createContext()
+// // 接收者 批发商批发菜
+// const ThemeProvider = THemeContext.Provider
+
+ export default class ContextPage extends Component {
+   constructor(props) {
+     super(props);
+     this.state = {
+       theme: {
+         theme: {
+           themeColor: "red"
+         },
+         user: {
+           name: 'xiaoming'
+         }
+       }
+     };
+   }
+   changeColor = () => {
+     const {themeColor} = this.state.theme;
+     this.setState({
+       theme: {
+         themeColor: themeColor === "red" ? "green" : "red"
+       }
+     })
+   }
+   render() {
+     const {theme, user} = this.state
+     return (
+       <div>
+        <button onClick={this.changeColor}>change color</button>
+        <h3>ContextPage</h3>
+        <ThemeProvider value={theme}>
+        {/* 只能订阅一个context */}
+          <ContextTypePage />
+          <ConsumerPage />
+          <UserProvider value={user}>
+            <MultipleContextPage />
+          </UserProvider>
+        </ThemeProvider>
+          
+       </div>
+     )
+   }
+ }
+```
+```js
+// ContextTypePage.js
+import React, {Component} from "react";
+import {ThemeContext} from "../ThemeContext";
+
+ class ContextTypePage extends Component {
+  // static contextType = ThemeContext;
+  render() {
+    console.log("this", this)
+    const {themeColor} = this.context;
+    return (
+      <div className="border">
+        <h3 className={themeColor}>
+          ContextTypePage
+        </h3>
+      </div>
+    )
+  }
+}
+// 只能订阅一个context 并且是类组件
+ContextTypePage.contextType = ThemeContext;
+export default ContextTypePage;
+```
+```js
+// themeContext.js
+import React from "react"
+
+// 创建context 农名种菜 如果没有匹配到Provider,取值默认值
+export const ThemeContext = React.createContext({themeColor: "pink"});
+// 接收者 批发商批发菜
+export const ThemeProvider = ThemeContext.Provider;
+// 消费者 吃菜
+export const ThemeConsumer = ThemeContext.Consumer;
+```
+
+```js
+// COnsumerPage.js
+import React, {Component} from "react";
+import {ThemeConsumer} from "../ThemeContext";
+
+export default function ConsumerPage(props) {
+  return (
+    <div className="border">
+      <h3>ConsumerPage</h3>
+      <ThemeConsumer>
+        {ctx => <div className={ctx.themeColor}>文本</div>}
+      </ThemeConsumer>
+    </div>
+  )   
+}
+```
+```js
+// userContext
+import React from "react"
+// 创建context 农民种菜， 
+export const UserContext = React.createCOntext()
+// 接收者 批发商批发菜
+export const UserProvider = UserContext.Provider;
+// 消费者 吃菜
+export const UserConsumer = UserContext.Consumer
+```
+```js
+// MultipleContextPage.js
+import React, {Component} from "react";
+import {ThemeContext} from '../ThemeContext';
+import {UserContext} from '../userContext';
+
+export default class MultioleContextPage extends Component {
+  render() {
+    <div>
+      <h3>MultipleContextPage</h3>
+      <ThemeConsumer>
+        {theme => (
+          <UserConsumer>
+            {user => <div className={theme.themeColor}>{user.name}</div>}
+          </UserConsumer>
+        )}
+      <ThemeConsumer/>
+    </div>
+  }
+}
+```
+
+##### 使用context步骤
+- 1. 创建createContext
+- 2. Provider接收value,以保证有传下去的数据
+- 3. 接收Consumer或者class.contextType
+
+##### 注意事项
+> 因为context会使用参考表示（reference identity）来决定何时进行渲染，
+这里可能会有一些陷阱，当provider的父组件进行重渲染时，可能会在consumers组件中触发以外的渲染。举个例子，当每一次Provider重渲染时，以下的代码会重渲染所有下面的consumers组件，因为value属性总是被赋值为新的对象：
+
+```js
+class App extends React.Component {
+  render() {
+    return (
+      <Provider value={something: 'something'}>
+        <Toolbar />
+      </Provider>
+    )
+  }
+}
+```
+
+为了防止这种情况，将value状态提升到父节点的state里：
+
+```js
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      value: {something: 'something'}
+    }
+  }
+  render() {
+    return (
+      <Provider value={this.state.value}>
+        <Toolbar />
+      </Provider>
+    )
+  }
+}
+```
+##### 总结
+> 在React的官方文档中，COntext被归类为高级部分(Advanced),属于React的高级API,但官方并不建议在稳定版的App中使用Context
+
+> 不过，这并非意味这我们不需要关注Context.事实上，很多优秀的React组件都通过Context来完成自己的功能，比如React-redux的<Provider />,就是通过Context提供一个全局态的store，路由组价react-router通过Context管理路由状态等等，在React组件开发中，如果用好Context,可以让你的组件变的强大，而且灵活
+
+> 函数组件中可以通过useContext引入上下文，后面hooks部分介绍
+
+### Reducer
+#### 什么是reducer
+##### reducer 就是一个纯函数，接收旧的state和action，返回新的state
+> (previousState, action) => newState
+
+之所以将这样的函数称之为reducer,是因为这种函数与传入Array.prototype.reduce(reducer, ?initialvalue),里的回调函数属于相同的类型，保持reducer纯净非常重要，永远不要在reducer里做这些操作
+
+- 修改传入参数
+- 执行有副作用的操作，如API请求和路由跳转；
+- 调用非纯函数，如Date.now() 或Math.random().
+
+```js
+// reduce案例
+const array1 = [1,2,3,4]
+const reducer = (accumulator, currentValue) => accumulator + currentValue;
+
+//1+2+3+4
+console.log(array1.reduce(reducer))
+// expected output: 10
+// 5+1+2+3+4
+console.log(array1.reduce(reducer, 5 ))
+
+```
+
+## Redux上手
+
+> Redux是JavaScript应用的状态容器，它保证程序行为一致性且易于测试
+
+![redux](./redux.png)
+
+### 安装redux
+```npm
+npm install redux --save
+```
+
+#### 手写Redux
+```js
+// KRedux.js
+export function createStore(reducer) {
+  let currentState = undefined;
+
+  function getState() {
+    return currentState;
+  }
+  function dispatch(action) {
+    currentState = reducer(currentState, action)
+    // 监听函数是一个数组，那就循环吧
+    currentListeners.map(listener => listener())
+
+  }
+  // 订阅， 可以多次订阅
+  function subscribe(listener) {
+    // 每次订阅， 把回调放入回调函数
+    currentListeners.push(listener);
+  }
+
+  // 取值的时候，注意一定要保证不和项目中的会重复
+  dispatch({type: "@INIT/REDUX-KKB"})
+
+  return {
+    getState,
+    dispatch,
+    subscribe
+  }
+}
+ 
+```
+```js
+// index.js
+ 
+
+```

@@ -9,6 +9,9 @@ tags:
 ---
 
 ## Java中String当中与获取相关的常用方法
+- ==是进行对象的地址值比较，如果确实需要字符串的内容比较，可以使用两个方法：
+  - public boolean equals(Object obj): 参数可以是任何对象
+  - 
 
 - public int length() : 获取字符串当中含有的字符个数，拿到字符串长度
 - public String concat(String str) :将当前字符串和参数字符串拼接成为返回值新的字符串

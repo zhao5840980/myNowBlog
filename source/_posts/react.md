@@ -748,7 +748,7 @@ npm install redux --save
 ```js
 // KRedux.js
 export function createStore(reducer) {
-  let currentState = undefined;
+  let currentState = undefined; 
 
   function getState() {
     return currentState;
@@ -778,6 +778,31 @@ export function createStore(reducer) {
 ```
 ```js
 // index.js
- 
+ import {createStore, combineReducers} from "../kRedux";
 
+ //定义修改规则
+ function countReducer(state=0, action) {
+   switch(action.type) {
+     case "ADD":
+        return state + 1;
+     case "MINUS":
+        return state - 1;
+     default:
+        return state;
+
+   }
+ }
+ const store = createStore(combineReducers({count:countReducer}));
+
+ export default store
+
+```
+#### 异步
+
+> Redux只是个纯粹的状态管理器，默认只支持同步，实现异步任务， 比如延迟、网络请求，需要中间件的支持，比如我们试用最简单的redux-thunk和redux-logger.
+
+> 中间件就是一个函数，对store.dispatch方法进行改造，在发出Action和执行Reducer这两步之间，添加了其他功能
+
+```js
+npm install redux-thunk redux-logger --save
 ```

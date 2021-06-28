@@ -806,3 +806,11 @@ export function createStore(reducer) {
 ```js
 npm install redux-thunk redux-logger --save
 ```
+```js
+import {createStore} from "redux"
+import thunk from 'redux-thunk'
+import logger from 'redux-logger'
+// 定义修改规则
+
+
+```
